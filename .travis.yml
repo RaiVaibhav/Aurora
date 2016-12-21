@@ -5,6 +5,7 @@ script:
   - >
     docker run --volume=$(pwd):/app --workdir=/app coala/base:pre /bin/bash -c
     "
+    zypper --non-interactive install mono-winforms;
     yes 0 | coala --apply-patches --no-orig >/dev/null 2>/dev/null;
     coala --ci >coala-ci.log 2>coala-ci-err.log
     "
