@@ -29,6 +29,7 @@ namespace Aurora.Settings
             this.start_silently_enabled.IsChecked = Global.Configuration.start_silently;
 
             this.app_exit_mode.SelectedIndex = (int)Global.Configuration.close_mode;
+            this.app_detection_mode.SelectedIndex = (int)Global.Configuration.detection_mode;
 
             this.volume_as_brightness_enabled.IsChecked = Global.Configuration.use_volume_as_brightness;
 
@@ -77,17 +78,20 @@ namespace Aurora.Settings
             this.idle_effects_amount.Value = Global.Configuration.idle_amount;
             this.idle_effects_frequency.Value = (int)Global.Configuration.idle_frequency;
 
-            this.devices_kb_brand.SelectedIndex = (int)Global.Configuration.keyboard_brand;
+            this.devices_kb_brand.SelectedItem = Global.Configuration.keyboard_brand;
             this.devices_kb_layout.SelectedIndex = (int)Global.Configuration.keyboard_localization;
-            this.devices_enable_logitech_color_enhance.IsChecked = Global.Configuration.logitech_enhance_brightness;
+            this.devices_mouse_brand.SelectedItem = Global.Configuration.mouse_preference;
+            this.devices_mouse_orientation.SelectedItem = Global.Configuration.mouse_orientation;
+            this.ComboBox_virtualkeyboard_keycap_type.SelectedItem = Global.Configuration.virtualkeyboard_keycap_type;
             this.wrapper_allow_in_background_enabled.IsChecked = Global.Configuration.allow_wrappers_in_background;
 
             this.updates_autocheck_on_start.IsChecked = Global.Configuration.updates_check_on_start_up;
             this.updates_background_install_minor.IsChecked = Global.Configuration.updates_allow_silent_minor;
 
+            this.atmoorb_enabled.IsChecked = Global.Configuration.atmoorb_enabled;
+            this.atmoorb_use_smoothing.IsChecked = Global.Configuration.atmoorb_use_smoothing;
+            this.atmoorb_IDs.Text = Global.Configuration.atmoorb_ids;
             Global.dev_manager.NewDevicesInitialized += Dev_manager_NewDevicesInitialized;
-
-            //Global.effengine.NewLayerRender += OnLayerRendered;
         }
 
         private void Dev_manager_NewDevicesInitialized(object sender, EventArgs e)
@@ -156,6 +160,15 @@ namespace Aurora.Settings
             if (IsLoaded)
             {
                 Global.Configuration.close_mode = (AppExitMode)Enum.Parse(typeof(AppExitMode), this.app_exit_mode.SelectedIndex.ToString());
+                ConfigManager.Save(Global.Configuration);
+            }
+        }
+
+        private void app_detection_mode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                Global.Configuration.detection_mode = (ApplicationDetectionMode)Enum.Parse(typeof(ApplicationDetectionMode), this.app_detection_mode.SelectedIndex.ToString());
                 ConfigManager.Save(Global.Configuration);
             }
         }
@@ -511,7 +524,7 @@ namespace Aurora.Settings
         {
             if (IsLoaded)
             {
-                Global.Configuration.logitech_enhance_brightness = (this.devices_enable_logitech_color_enhance.IsChecked.HasValue) ? this.devices_enable_logitech_color_enhance.IsChecked.Value : false;
+                //Global.Configuration.logitech_enhance_brightness = (this.devices_enable_logitech_color_enhance.IsChecked.HasValue) ? this.devices_enable_logitech_color_enhance.IsChecked.Value : false;
                 ConfigManager.Save(Global.Configuration);
             }
         }
@@ -615,7 +628,7 @@ namespace Aurora.Settings
                 Global.Configuration.keyboard_localization = (PreferredKeyboardLocalization)Enum.Parse(typeof(PreferredKeyboardLocalization), this.devices_kb_layout.SelectedIndex.ToString());
                 ConfigManager.Save(Global.Configuration);
 
-                Global.kbLayout.LoadBrand(Global.Configuration.keyboard_brand);
+                Global.kbLayout.LoadBrand(Global.Configuration.keyboard_brand, Global.Configuration.mouse_preference, Global.Configuration.mouse_orientation);
             }
         }
 
@@ -623,10 +636,43 @@ namespace Aurora.Settings
         {
             if (IsLoaded)
             {
-                Global.Configuration.keyboard_brand = (PreferredKeyboard)Enum.Parse(typeof(PreferredKeyboardLocalization), this.devices_kb_brand.SelectedIndex.ToString());
+                Global.Configuration.keyboard_brand = (PreferredKeyboard)Enum.Parse(typeof(PreferredKeyboard), this.devices_kb_brand.SelectedItem.ToString());
                 ConfigManager.Save(Global.Configuration);
 
-                Global.kbLayout.LoadBrand(Global.Configuration.keyboard_brand);
+                Global.kbLayout.LoadBrand(Global.Configuration.keyboard_brand, Global.Configuration.mouse_preference, Global.Configuration.mouse_orientation);
+            }
+        }
+
+        private void devices_mouse_brand_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                Global.Configuration.mouse_preference = (PreferredMouse)Enum.Parse(typeof(PreferredMouse), this.devices_mouse_brand.SelectedItem.ToString());
+                ConfigManager.Save(Global.Configuration);
+
+                Global.kbLayout.LoadBrand(Global.Configuration.keyboard_brand, Global.Configuration.mouse_preference, Global.Configuration.mouse_orientation);
+            }
+        }
+
+        private void devices_mouse_orientation_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                Global.Configuration.mouse_orientation = (MouseOrientationType)Enum.Parse(typeof(MouseOrientationType), this.devices_mouse_orientation.SelectedItem.ToString());
+                ConfigManager.Save(Global.Configuration);
+
+                Global.kbLayout.LoadBrand(Global.Configuration.keyboard_brand, Global.Configuration.mouse_preference, Global.Configuration.mouse_orientation);
+            }
+        }
+
+        private void ComboBox_virtualkeyboard_keycap_type_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                Global.Configuration.virtualkeyboard_keycap_type = (KeycapType)Enum.Parse(typeof(KeycapType), this.ComboBox_virtualkeyboard_keycap_type.SelectedItem.ToString());
+                ConfigManager.Save(Global.Configuration);
+
+                Global.kbLayout.LoadBrand(Global.Configuration.keyboard_brand, Global.Configuration.mouse_preference, Global.Configuration.mouse_orientation);
             }
         }
 
@@ -818,6 +864,52 @@ namespace Aurora.Settings
             {
                 Global.logger.LogLine("Exception during LightFX (64 bit) Wrapper install. Exception: " + exc, Logging_Level.Error);
                 System.Windows.MessageBox.Show("Aurora Wrapper Patch for LightFX (64 bit) could not be applied.\r\nException: " + exc.Message);
+            }
+        }
+
+        private void atmoorb_enabled_Checked(object sender, RoutedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                Global.Configuration.atmoorb_enabled = (this.atmoorb_enabled.IsChecked.HasValue) ? this.atmoorb_enabled.IsChecked.Value : false;
+                ConfigManager.Save(Global.Configuration);
+
+            }
+        }
+        private void atmoorb_enabled_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                Global.Configuration.atmoorb_enabled = (this.atmoorb_enabled.IsChecked.HasValue) ? this.atmoorb_enabled.IsChecked.Value : false;
+                ConfigManager.Save(Global.Configuration);
+            }
+        }
+
+
+        private void atmoorb_use_smoothing_Checked(object sender, RoutedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                Global.Configuration.atmoorb_use_smoothing = (this.atmoorb_use_smoothing.IsChecked.HasValue) ? this.atmoorb_use_smoothing.IsChecked.Value : false;
+                ConfigManager.Save(Global.Configuration);
+            }
+        }
+
+        private void atmoorb_use_smoothing_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                Global.Configuration.atmoorb_use_smoothing = (this.atmoorb_use_smoothing.IsChecked.HasValue) ? this.atmoorb_use_smoothing.IsChecked.Value : false;
+                ConfigManager.Save(Global.Configuration);
+            }
+        }
+
+        private void atmoorb_IDs_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                Global.Configuration.atmoorb_ids = this.atmoorb_IDs.Text;
+                ConfigManager.Save(Global.Configuration);
             }
         }
     }
